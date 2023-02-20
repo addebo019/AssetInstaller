@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace AssetInstaller.Utils
 {
@@ -37,6 +39,36 @@ namespace AssetInstaller.Utils
                     CopyDirectory(subDir.FullName, newDestinationDir, true);
                 }
             }
+        }
+
+        public static bool DirectoryHasPermission(string directoryPath, FileSystemRights accessRight)
+        {
+            if (string.IsNullOrEmpty(directoryPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                AuthorizationRuleCollection rules = Directory.GetAccessControl(directoryPath).GetAccessRules(true, true, typeof(SecurityIdentifier));
+                WindowsIdentity identity = WindowsIdentity.GetCurrent();
+
+                foreach (FileSystemAccessRule rule in rules)
+                {
+                    if (identity.Groups.Contains(rule.IdentityReference))
+                    {
+                        if ((accessRight & rule.FileSystemRights) == accessRight)
+                        {
+                            if (rule.AccessControlType == AccessControlType.Allow)
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return false;
         }
     }
 }

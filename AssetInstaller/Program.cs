@@ -1,5 +1,7 @@
-﻿using System;
+﻿using AssetInstaller.Utils;
+using System;
 using System.Diagnostics;
+using System.Security.AccessControl;
 using System.Windows.Forms;
 
 namespace AssetInstaller
@@ -10,7 +12,7 @@ namespace AssetInstaller
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -31,6 +33,13 @@ namespace AssetInstaller
                 return;
             }
 
+            // Check if we have write permissions to installation path
+            if (!FileUtils.DirectoryHasPermission(trainzUtil.ProductInstallPath, FileSystemRights.WriteData))
+            {
+                RestartWithElevatedPrivileges();
+                return;
+            }
+
             // Check if Nvidia GPU is installed on the system
             if (SystemGpuInfo.IsNvidia)
             {
@@ -43,6 +52,25 @@ namespace AssetInstaller
             }
 
             Application.Run(new InstallerForm(trainzUtil));
+        }
+
+        static void RestartWithElevatedPrivileges()
+        {
+            ProcessStartInfo proc = new ProcessStartInfo();
+            proc.WorkingDirectory = Environment.CurrentDirectory;
+            proc.FileName = Application.ExecutablePath;
+            proc.UseShellExecute = true;
+            proc.Verb = "runas";
+
+            try
+            {
+                Process process = Process.Start(proc);
+                process.WaitForExit();
+            }
+            catch
+            {
+                MessageBox.Show("Die Installation kann ohne Administratorrechte nicht fortgesetzt werden.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+            }
         }
     }
 }
