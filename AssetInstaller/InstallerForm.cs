@@ -115,27 +115,6 @@ namespace AssetInstaller
                 progressBar.Maximum = totalCount;
             });
 
-            // Copy settings if first run
-            if (lastTimestamp == 0)
-            {
-                foreach (string settingsFile in Directory.GetFiles(Path.Combine("UserData", "settings")))
-                {
-                    string targetFilePath = Path.Combine(trainzUtil.ProductInstallPath, "UserData", "settings", Path.GetFileName(settingsFile));
-
-                    try
-                    {
-                        File.Delete(targetFilePath);
-                        File.Copy(settingsFile, targetFilePath);
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
-                        ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
-                }
-            }
-
             // Check if there are new scripts to be installed
             if (updatedScripts.Count > 0)
             {
@@ -227,6 +206,27 @@ namespace AssetInstaller
             }
 
             UpdateLabel("Fertigstellung der Installation...");
+
+            // Copy settings if folder exists
+            if (Directory.Exists(Path.Combine("UserData", "settings")))
+            {
+                foreach (string settingsFile in Directory.GetFiles(Path.Combine("UserData", "settings")))
+                {
+                    string targetFilePath = Path.Combine(trainzUtil.ProductInstallPath, "UserData", "settings", Path.GetFileName(settingsFile));
+
+                    try
+                    {
+                        File.Delete(targetFilePath);
+                        File.Copy(settingsFile, targetFilePath);
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
+                        ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+            }
 
             if (File.Exists(".lastinstall"))
             {
