@@ -1,6 +1,7 @@
 ﻿using AssetInstaller.Utils;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Security.AccessControl;
 using System.Windows.Forms;
 
@@ -41,7 +42,7 @@ namespace AssetInstaller
             }
 
             // Check if Nvidia GPU is installed on the system
-            if (SystemGpuInfo.IsNvidia)
+            if (SystemGpuInfo.IsNvidia && !File.Exists(".lastinstall"))
             {
                 DialogResult result = MessageBox.Show("Auf diesem System wurde eine Nvidia-Grafikkarte erkannt!\n\nEs kann zu Fehlern bei Texturen kommen, wenn die hardwarebeschleunigte Texturkompression in Trainz während der Installation aktiviert ist. Bitte stellen Sie sicher, dass diese Einstellung im Content Manager ausgeschaltet ist, bevor Sie mit der Installation fortfahren.\n\nSind Sie sicher, dass Sie fortfahren möchten? ", "Warnung!", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
 
