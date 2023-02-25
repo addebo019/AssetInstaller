@@ -1,4 +1,5 @@
 ﻿using AssetInstaller.Utils;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -18,10 +19,27 @@ namespace AssetInstaller
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            TrainzUtil trainzUtil = new TrainzUtil();
+            TrainzUtil trainzUtil = new TrainzUtil(args.Length > 0 ? args[0] : RegistryUtils.FindTrainzInstallation());
 
-            // Check if Trainz installation was found on the system
+            // Check if Trainz installation was found on the system and show folder picker if not
             if (trainzUtil.ProductInstallPath is null)
+            {
+                using (CommonOpenFileDialog dialog = new CommonOpenFileDialog())
+                {
+                    dialog.Title = "Bitte Installationsverzeichnis auswählen...";
+                    dialog.IsFolderPicker = true;
+
+                    CommonFileDialogResult result = dialog.ShowDialog();
+
+                    if (result == CommonFileDialogResult.Ok && !string.IsNullOrWhiteSpace(dialog.FileName))
+                    {
+                        trainzUtil.ProductInstallPath = dialog.FileName;
+                    }
+                }
+            }
+
+            // Check if installation path exists and contains TrainzUtil.exe
+            if (!File.Exists(Path.Combine(trainzUtil.ProductInstallPath, "bin", "TrainzUtil.exe")))
             {
                 MessageBox.Show("Trainz Simulator 2009 konnte auf diesem System nicht gefunden werden. Bitte installieren Sie das Spiel neu und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                 return;
@@ -37,7 +55,7 @@ namespace AssetInstaller
             // Check if we have write permissions to installation path
             if (!FileUtils.DirectoryHasPermission(trainzUtil.ProductInstallPath, FileSystemRights.WriteData))
             {
-                RestartWithElevatedPrivileges();
+                RestartWithElevatedPrivileges(new string[] { trainzUtil.ProductInstallPath });
                 return;
             }
 
@@ -55,13 +73,18 @@ namespace AssetInstaller
             Application.Run(new InstallerForm(trainzUtil));
         }
 
-        static void RestartWithElevatedPrivileges()
+        static void RestartWithElevatedPrivileges(string[] args)
         {
             ProcessStartInfo proc = new ProcessStartInfo();
             proc.WorkingDirectory = Environment.CurrentDirectory;
             proc.FileName = Application.ExecutablePath;
             proc.UseShellExecute = true;
             proc.Verb = "runas";
+
+            foreach (string arg in args)
+            {
+                proc.Arguments += String.Format("\"{0}\" ", arg);
+            }
 
             try
             {

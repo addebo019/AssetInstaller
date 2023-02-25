@@ -1,7 +1,7 @@
-﻿using AssetInstaller.Utils;
-using CliWrap;
+﻿using CliWrap;
 using CliWrap.Buffered;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,9 +11,9 @@ namespace AssetInstaller
     {
         public string ProductInstallPath { get; set; }
 
-        public TrainzUtil()
+        public TrainzUtil(string installPath)
         {
-            this.ProductInstallPath = RegistryUtils.FindTrainzInstallation();
+            this.ProductInstallPath = installPath;
         }
 
         private string ParseErrorMessage(string line)
@@ -27,7 +27,7 @@ namespace AssetInstaller
             CancellationTokenSource cts = new CancellationTokenSource();
             cts.CancelAfter(TimeSpan.FromMinutes(5));
 
-            Command command = Cli.Wrap(ProductInstallPath + "\\bin\\TrainzUtil.exe").WithArguments(args).WithValidation(CommandResultValidation.None);
+            Command command = Cli.Wrap(Path.Combine(ProductInstallPath, "bin", "TrainzUtil.exe")).WithArguments(args).WithValidation(CommandResultValidation.None);
             BufferedCommandResult bufferedCommandResult = await command.ExecuteBufferedAsync(cts.Token);
             return bufferedCommandResult;
         }
