@@ -70,5 +70,31 @@ namespace AssetInstaller.Utils
             catch { }
             return false;
         }
+
+        public class HiddenStreamWriter : StreamWriter
+        {
+            private string filePath;
+
+            public HiddenStreamWriter(string path) : base(path)
+            {
+                this.filePath = path;
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                File.SetAttributes(filePath, File.GetAttributes(filePath) | FileAttributes.Hidden);
+            }
+
+            public static HiddenStreamWriter Open(string path)
+            {
+                if (File.Exists(path))
+                {
+                    File.SetAttributes(path, File.GetAttributes(path) & ~FileAttributes.Hidden);
+                }
+
+                return new HiddenStreamWriter(path);
+            }
+        }
     }
 }

@@ -228,18 +228,11 @@ namespace AssetInstaller
                 }
             }
 
-            if (File.Exists(".lastinstall"))
-            {
-                File.SetAttributes(".lastinstall", File.GetAttributes(".lastinstall") & ~FileAttributes.Hidden);
-            }
-
             // Write the current timestamp as last install
-            using (StreamWriter file = new StreamWriter(".lastinstall"))
+            using (StreamWriter file = FileUtils.HiddenStreamWriter.Open(".lastinstall"))
             {
                 file.WriteLine(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString());
             }
-
-            File.SetAttributes(".lastinstall", File.GetAttributes(".lastinstall") | FileAttributes.Hidden);
 
             // Finish it off
             TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
