@@ -47,13 +47,13 @@ namespace AssetInstaller
             if (promptOnClosing)
             {
                 e.Cancel = true;
-                DialogResult result = MessageBox.Show(this, "Sind Sie sicher, dass Sie die Installation abbrechen möchten?", "Installation abbrechen", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                DialogResult result = MessageBox.Show(this, "Sind Sie sicher, dass Sie die Installation abbrechen möchten?", "Installation abbrechen?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 // Tell the installer to cancel the installation
                 if (result == DialogResult.Yes)
                 {
                     isCancelled = true;
-                    label.Text = "Installation wird abgebrochen...";
+                    label.Text = "Installation wird abgebrochen, bitte warten...";
                     TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Paused);
                 }
             }
@@ -96,7 +96,7 @@ namespace AssetInstaller
             if (totalCount == 0)
             {
                 TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
-                ShowMessageBoxAndClose("Es gibt nichts neues zum Installieren.", "Fertig!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowMessageBoxAndClose("Es gibt nichts Neues zu installieren.", "Fertig!", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace AssetInstaller
             // Check if there are new scripts to be installed
             if (updatedScripts.Count > 0)
             {
-                UpdateLabel("Installiere Scripts...");
+                UpdateLabel("Installiere Scripts, dies kann eine Weile dauern...");
 
                 // Check and close TADDaemon if still running
                 if (Process.GetProcessesByName("TADDaemon").Length != 0)
