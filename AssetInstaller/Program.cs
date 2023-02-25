@@ -53,7 +53,7 @@ namespace AssetInstaller
             }
 
             // Check if we have write permissions to installation path
-            if (!FileUtils.DirectoryHasPermission(trainzUtil.ProductInstallPath, FileSystemRights.WriteData))
+            if (!FileUtils.DirectoryHasPermission(trainzUtil.ProductInstallPath, FileSystemRights.Write))
             {
                 RestartWithElevatedPrivileges(new string[] { trainzUtil.ProductInstallPath });
                 return;
