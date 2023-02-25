@@ -301,7 +301,6 @@ namespace AssetInstaller
         {
             if (InvokeRequired)
             {
-
                 Invoke(new MethodInvoker(() => ShowMessageBoxAndClose(message, caption, buttons, icon)));
             }
             else
@@ -319,7 +318,7 @@ namespace AssetInstaller
         private List<string> GetUpdatedScripts(long lastTimestamp)
         {
             List<string> updated = new List<string>();
-            
+
             foreach (string fileName in Directory.GetFiles("scripts"))
             {
                 if (File.GetLastWriteTimeUtc(fileName).Ticks > lastTimestamp)
