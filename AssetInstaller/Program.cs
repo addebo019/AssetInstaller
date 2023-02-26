@@ -35,13 +35,18 @@ namespace AssetInstaller
                     {
                         trainzUtil.ProductInstallPath = dialog.FileName;
                     }
+                    else
+                    {
+                        Environment.Exit(0);
+                        return;
+                    }
                 }
             }
 
             // Check if installation path exists and contains TrainzUtil.exe
             if (!File.Exists(Path.Combine(trainzUtil.ProductInstallPath, "bin", "TrainzUtil.exe")))
             {
-                MessageBox.Show("Trainz Simulator 2009 konnte auf diesem System nicht gefunden werden. Bitte installieren Sie das Spiel neu und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                MessageBox.Show("TrainzUtil.exe konnte nicht im Installationsverzeichnis gefunden werden. Bitte überprüfen Sie den gewählten Pfad und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                 return;
             }
 
