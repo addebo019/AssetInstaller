@@ -228,6 +228,29 @@ namespace AssetInstaller
                 }
             }
 
+            // Commit any remaining assets left open for editing
+            foreach (string directory in Directory.GetDirectories(Path.Combine(trainzUtil.ProductInstallPath, "UserData", "editing")))
+            {
+                string configFile = Path.Combine(directory, "config.txt");
+
+                if (!File.Exists(configFile))
+                {
+                    continue;
+                }
+
+                string kuid = ReadKuidFromConfig(configFile);
+                string username = ReadUsernameFromConfig(configFile);
+
+                try
+                {
+                    await trainzUtil.CommitAssetAsync(kuid);
+                }
+                catch (TrainzUtil.TrainzException ex)
+                {
+                    Console.Error.WriteLine("Failed to commit asset \"" + username + "\" <" + kuid + ">: " + ex.Message);
+                }
+            }
+
             // Write the current timestamp as last install
             using (StreamWriter file = FileUtils.HiddenStreamWriter.Open(".lastinstall"))
             {
@@ -420,6 +443,7 @@ namespace AssetInstaller
 
         private bool ContainsFilesNewerThan(string directory, long lastTimestamp)
         {
+            // Go through each file in directory and compare last write time with lastTimestamp
             foreach (string fileName in Directory.GetFiles(directory, "*", SearchOption.AllDirectories))
             {
                 if (File.GetLastWriteTimeUtc(fileName).Ticks > lastTimestamp)
