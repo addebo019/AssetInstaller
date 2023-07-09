@@ -228,6 +228,8 @@ namespace AssetInstaller
                 }
             }
 
+            List<string> failedAssets = new List<string>();
+
             // Commit any remaining assets left open for editing
             foreach (string directory in Directory.GetDirectories(Path.Combine(trainzUtil.ProductInstallPath, "UserData", "editing")))
             {
@@ -241,13 +243,27 @@ namespace AssetInstaller
                 string kuid = ReadKuidFromConfig(configFile);
                 string username = ReadUsernameFromConfig(configFile);
 
-                try
+                // Try to commit the asset five times
+                for (int i = 1; i <= 5; i++)
                 {
-                    await trainzUtil.CommitAssetAsync(kuid);
-                }
-                catch (TrainzUtil.TrainzException ex)
-                {
-                    Console.Error.WriteLine("Failed to commit asset \"" + username + "\" <" + kuid + ">: " + ex.Message);
+                    try
+                    {
+                        await trainzUtil.CommitAssetAsync(kuid);
+                    }
+                    catch (TrainzUtil.TrainzException ex)
+                    {
+                        Console.Error.WriteLine("Failed to commit asset \"" + username + "\" <" + kuid + ">: " + ex.Message);
+                    }
+
+                    // Check if directory still exists
+                    if (!Directory.Exists(directory))
+                    {
+                        break;
+                    }
+                    else if (i == 5)
+                    {
+                        failedAssets.Add(kuid);
+                    }
                 }
             }
 
@@ -257,7 +273,15 @@ namespace AssetInstaller
                 file.WriteLine(new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString());
             }
 
+            // Show a message box if there are failed assets
+            if (failedAssets.Count > 0)
+            {
+                TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
+                ShowMessageBox("Einige Assets konnten nicht eingebunden werden. Bitte überprüfen Sie die Assets unter \"Geöffnet zum Bearbeiten\" im Content Manager bevor Sie Trainz starten.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             // Finish it off
+            UpdateLabel("Installation abgeschlossen!");
             TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
             ShowMessageBoxAndClose("Die Installation ist erfolgreich abgeschlossen.\n\nScripts: " + updatedScripts.Count + ", Assets: " + updatedAssets.Count, "Fertig!", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -317,6 +341,19 @@ namespace AssetInstaller
                 this.Text = "Installiere... " + (int)Math.Round((double)(100 * value) / totalCount) + "%";
                 TaskbarManager.Instance.SetProgressValue(value, totalCount);
                 progressBar.Value = value;
+            }
+        }
+
+        private void ShowMessageBox(string message, string caption, MessageBoxButtons buttons, MessageBoxIcon icon)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new MethodInvoker(() => ShowMessageBox(message, caption, buttons, icon)));
+            }
+            else
+            {
+                FlashWindow.Flash(this);
+                MessageBox.Show(this, message, caption, buttons, icon);
             }
         }
 
