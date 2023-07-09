@@ -228,6 +228,49 @@ namespace AssetInstaller
                 }
             }
 
+            string globalModulePath = Path.Combine(trainzUtil.ProductInstallPath, "UserData", "settings", "globalmodule.txt");
+            string tempFilePath = Path.GetTempFileName();
+
+            // Patch the globalmodule.txt file to enable legacy mode
+            // For this we will need to read the file and go through each line to find the line containing "legacy-support-mode"
+            // Then we can replace the value 0 with 1 in the second line after the line containing "legacy-support-mode"
+            using (StreamWriter writer = new StreamWriter(tempFilePath))
+            {
+                using (StreamReader reader = new StreamReader(globalModulePath))
+                {
+                    string line;
+                    int i = 0, lineNumber = 0;
+
+                    while ((line = await reader.ReadLineAsync()) != null)
+                    {
+                        if (line.Contains("legacy-support-mode"))
+                        {
+                            lineNumber = i + 2;
+                        }
+
+                        if (i == lineNumber)
+                        {
+                            line = line.Replace("0", "1");
+                        }
+
+                        await writer.WriteLineAsync(line);
+                        i++;
+                    }
+                }
+            }
+
+            try
+            {
+                File.Delete(globalModulePath);
+                File.Move(tempFilePath, globalModulePath);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
+                ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             List<string> failedAssets = new List<string>();
 
             // Commit any remaining assets left open for editing
