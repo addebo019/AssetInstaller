@@ -1,4 +1,5 @@
 ﻿using AssetInstaller.Utils;
+using CommandLine;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.Diagnostics;
@@ -10,11 +11,30 @@ namespace AssetInstaller
 {
     static class Program
     {
+        class Options
+        {
+            [Value(0, MetaName = "path", HelpText = "Path for installation.")]
+            public string Path { get; set; }
+
+            [Option("reinstall", HelpText = "Reinstall flag.")]
+            public bool Reinstall { get; set; }
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
         static void Main(string[] args)
+        {
+            Parser parser = new Parser(with =>
+            {
+                with.CaseSensitive = false;
+            });
+
+            parser.ParseArguments<Options>(args).WithParsed<Options>(opts => RunWithOptions(opts));
+        }
+
+        static void RunWithOptions(Options options)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -26,7 +46,18 @@ namespace AssetInstaller
                 return;
             }
 
-            TrainzUtil trainzUtil = new TrainzUtil(args.Length > 0 ? args[0] : RegistryUtils.FindTrainzInstallation());
+            // Check if installer is run with reinstall option
+            if (options.Reinstall && File.Exists(".lastinstall"))
+            {
+                DialogResult result = MessageBox.Show("Wollen Sie wirklich mit der Neuinstallation fortfahren?\nDies kann einige Zeit in Anspruch nehmen.", "Warnung!", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+
+                if (result == DialogResult.Yes)
+                {
+                    File.Delete(".lastinstall");
+                }
+            }
+
+            TrainzUtil trainzUtil = new TrainzUtil(options.Path ?? RegistryUtils.FindTrainzInstallation());
 
             // Check if Trainz installation was found on the system and show folder picker if not
             if (trainzUtil.ProductInstallPath is null)
