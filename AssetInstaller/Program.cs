@@ -60,11 +60,11 @@ namespace AssetInstaller
             TrainzUtil trainzUtil = new TrainzUtil(options.Path ?? RegistryUtils.FindTrainzInstallation());
 
             // Check if Trainz installation was found on the system and show folder picker if not
-            if (trainzUtil.ProductInstallPath is null)
+            if (trainzUtil.ProductInstallPath is null || !File.Exists(Path.Combine(trainzUtil.ProductInstallPath, "bin", "TrainzUtil.exe")))
             {
                 using (CommonOpenFileDialog dialog = new CommonOpenFileDialog())
                 {
-                    dialog.Title = "Bitte Installationsverzeichnis auswählen...";
+                    dialog.Title = "Bitte Installationsverzeichnis auswählen, in dem sich Trainz.exe befindet...";
                     dialog.IsFolderPicker = true;
 
                     CommonFileDialogResult result = dialog.ShowDialog();
@@ -81,7 +81,7 @@ namespace AssetInstaller
                 }
             }
 
-            // Check if installation path exists and contains TrainzUtil.exe
+            // Check if installation path contains TrainzUtil.exe
             if (!File.Exists(Path.Combine(trainzUtil.ProductInstallPath, "bin", "TrainzUtil.exe")))
             {
                 MessageBox.Show("TrainzUtil.exe konnte nicht im Installationsverzeichnis gefunden werden. Bitte überprüfen Sie den gewählten Pfad und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
