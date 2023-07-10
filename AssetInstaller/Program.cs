@@ -19,6 +19,13 @@ namespace AssetInstaller
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            // Check if installer is run inside Trainz installation path
+            if (File.Exists(Path.Combine(Environment.CurrentDirectory, "bin", "TrainzUtil.exe")))
+            {
+                MessageBox.Show("Die Installation kann nicht im Trainz-Installationsverzeichnis ausgeführt werden. Bitte verschieben Sie die Datei in einen anderen Ordner und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
+                return;
+            }
+
             TrainzUtil trainzUtil = new TrainzUtil(args.Length > 0 ? args[0] : RegistryUtils.FindTrainzInstallation());
 
             // Check if Trainz installation was found on the system and show folder picker if not
