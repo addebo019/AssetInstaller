@@ -89,7 +89,7 @@ namespace AssetInstaller
             }
 
             // Check if Trainz is not running
-            if (Process.GetProcessesByName("trainz").Length != 0)
+            if (Process.GetProcessesByName("trainz").Length != 0 || Process.GetProcessesByName("contentmanager").Length != 0)
             {
                 MessageBox.Show("Trainz muss geschlossen werden, um mit der Installation fortfahren zu können. Bitte schließen Sie das Spiel und versuchen Sie es erneut.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Hand);
                 return;
