@@ -234,41 +234,44 @@ namespace AssetInstaller
             // Patch the globalmodule.txt file to enable legacy mode
             // For this we will need to read the file and go through each line to find the line containing "legacy-support-mode"
             // Then we can replace the value 0 with 1 in the second line after the line containing "legacy-support-mode"
-            using (StreamWriter writer = new StreamWriter(tempFilePath))
+            if (File.Exists(globalModulePath))
             {
-                using (StreamReader reader = new StreamReader(globalModulePath))
+                using (StreamWriter writer = new StreamWriter(tempFilePath))
                 {
-                    string line;
-                    int i = 0, lineNumber = 0;
-
-                    while ((line = await reader.ReadLineAsync()) != null)
+                    using (StreamReader reader = new StreamReader(globalModulePath))
                     {
-                        if (line.Contains("legacy-support-mode"))
-                        {
-                            lineNumber = i + 2;
-                        }
+                        string line;
+                        int i = 0, lineNumber = 0;
 
-                        if (i == lineNumber)
+                        while ((line = await reader.ReadLineAsync()) != null)
                         {
-                            line = line.Replace("0", "1");
-                        }
+                            if (line.Contains("legacy-support-mode"))
+                            {
+                                lineNumber = i + 2;
+                            }
 
-                        await writer.WriteLineAsync(line);
-                        i++;
+                            if (i == lineNumber)
+                            {
+                                line = line.Replace("0", "1");
+                            }
+
+                            await writer.WriteLineAsync(line);
+                            i++;
+                        }
                     }
                 }
-            }
 
-            try
-            {
-                File.Delete(globalModulePath);
-                File.Move(tempFilePath, globalModulePath);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
-                ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                try
+                {
+                    File.Delete(globalModulePath);
+                    File.Move(tempFilePath, globalModulePath);
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
+                    ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
             }
 
             List<string> failedAssets = new List<string>();
