@@ -106,6 +106,20 @@ namespace AssetInstaller
             }
         }
 
+        public async Task DeleteAssetAsync(string assetKuid)
+        {
+            BufferedCommandResult result = await RunCommandAsync("delete", assetKuid);
+            string[] output = result.StandardOutput.Split('\n');
+
+            foreach (string line in output)
+            {
+                if (line.StartsWith("-"))
+                {
+                    throw new TrainzException(ParseErrorMessage(line));
+                }
+            }
+        }
+
         public async Task<bool> EchoAsync(string text)
         {
             BufferedCommandResult result = await RunCommandAsync("echo", text);

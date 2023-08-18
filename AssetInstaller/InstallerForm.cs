@@ -162,36 +162,17 @@ namespace AssetInstaller
             {
                 UpdateLabel("Installiere Asset \"" + asset.Username + "\" <" + asset.Kuid + ">...");
 
+                // Delete existing asset before installing
+                await trainzUtil.DeleteAssetAsync(asset.Kuid);
+                await trainzUtil.InstallFromPathAsync(asset.Path);
+
                 try
                 {
-                    string editDirPath = await trainzUtil.OpenForEditAsync(asset.Kuid);
-
-                    try
-                    {
-                        Directory.Delete(editDirPath, true);
-                        FileUtils.CopyDirectory(asset.Path, editDirPath, true);
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.Error);
-                        ShowMessageBoxAndClose("Keine Berechtigung zum Kopieren von Dateien.", "Fehler!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        return;
-                    }
+                    await trainzUtil.CommitAssetAsync(asset.Kuid);
                 }
-                catch (TrainzUtil.TrainzException)
+                catch (Exception ex) when (ex is OperationCanceledException || ex is TrainzUtil.TrainzException)
                 {
-                    await trainzUtil.InstallFromPathAsync(asset.Path);
-                }
-                finally
-                {
-                    try
-                    {
-                        await trainzUtil.CommitAssetAsync(asset.Kuid);
-                    }
-                    catch (TrainzUtil.TrainzException)
-                    {
-                        // TODO: await trainzUtil.RevertAssetAsync(asset.Kuid);
-                    }
+                    Console.Error.WriteLine("Failed to commit asset \"" + asset.Username + "\" <" + asset.Kuid + ">: " + ex.Message);
                 }
 
                 // Exit if the installation has been cancelled
@@ -296,10 +277,7 @@ namespace AssetInstaller
                     {
                         await trainzUtil.CommitAssetAsync(kuid);
                     }
-                    catch (TrainzUtil.TrainzException ex)
-                    {
-                        Console.Error.WriteLine("Failed to commit asset \"" + username + "\" <" + kuid + ">: " + ex.Message);
-                    }
+                    catch (Exception) {}
 
                     // Check if directory still exists
                     if (!Directory.Exists(directory))
